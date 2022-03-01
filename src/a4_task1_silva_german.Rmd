@@ -1,0 +1,71 @@
+---
+title: 'Task 1: Spatial Data Viz (SILVA)'
+author: "German Silva"
+date: "3/1/2022"
+output: html_document
+---
+
+# Overview
+
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# attach libraries
+library(spatstat)
+library(tmap)
+library(tmaptools)
+library(sf)
+library(tidyverse)
+library(here)
+```
+
+# Exploratory Map
+
+## Read in the data
+```{r}
+spills <- read_sf(here('data', 'Oil_Spill_Incident_Tracking_[ds394]', "Oil_Spill_Incident_Tracking_[ds394].shp")) %>% 
+  janitor::clean_names()
+
+ca_counties <- read_sf(here('data', 'ca_counties', 'CA_Counties_TIGER2016.shp')) %>% 
+  janitor::clean_names()
+```
+
+## Create interactive exploratory map
+```{r}
+tmap_mode('view')
+
+tm_shape(ca_counties)+
+  tm_fill(col = 'black', alpha = 0.3)+
+  tm_borders(col = 'black', lwd = 0.5)+
+  tm_shape(spills) +
+  tm_dots()
+```
+
+# Creation of visualization for 2008 Inland Spills by County
+
+## Subset and join data
+```{r}
+spills_inland <- spills %>% 
+  filter(inlandmari == "Inland") %>% 
+  mutate(dateofinci = lubridate::ymd(dateofinci),
+         year = lubridate::year(dateofinci)) %>% 
+  filter(year == 2008)
+
+ca_spills <- ca_counties %>% 
+  st_join(spills_inland)
+```
+
+## Obtain the number of 
+```{r}
+ca_spill_count <- ca_spills %>% 
+  group_by(name) %>% 
+  summarize(n_records = sum(!is.na(oesnumber)))
+```
+
+## Create ggplot for visualization
+```{r}
+ggplot()+
+  geom_sf(data = ca_spill_count, aes(fill = n_records))
+```
+
