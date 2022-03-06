@@ -1,0 +1,49 @@
+---
+title: "Task 2: Willamette Falls Fish Passage"
+author: "German Silva"
+date: "3/3/2022"
+output: 
+  html_document:
+    code_folding: hide
+    theme: flatly
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# attach packages
+library(tidyverse)
+library(here)
+library(lubridate)
+library(tsibble)
+library(feasts)
+library(slider)
+```
+
+# Overview {.tabset .tabset-fade .tabset-pills}
+
+**Summary**:
+
+This report explores adult fish passage data from the Willamette Falls fish ladder on the Willamette River (Oregon, USA) from 2001-01-01 to 2010-12-31. Analysis of the data includes 1) visualization of the original times series, 2) seasonplots for the data, and 3) annual counts by species.    
+
+**Data Source**: 
+
+Columbia River Research, "Data Access in Real Time (DART) Adult Passage Graphics and Text", http://www.cbr.washington.edu/dart/query/adult_graph_text
+
+## Original Time Series
+
+```{r}
+adult_pass <- read_csv(here('data', 'willamette_fish_passage.csv')) %>% 
+  janitor::clean_names() %>%  
+  select(date, coho, steelhead, jack_coho)
+
+adult_pass[is.na(adult_pass)] = 0
+```
+
+
+## Seasonplots
+
+## Annual counts by species
+
+

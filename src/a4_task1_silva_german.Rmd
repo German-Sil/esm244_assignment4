@@ -7,6 +7,7 @@ output: html_document
 
 # Overview
 
+This code provides two examples of spatial data visualization for oil spill data in California. The exploratory data visualization is in an interactive format, while the choropleth map is a static map in a finalized format. Both highlight how the same data can be shown in different ways to visualize different aspects of the spatial data. For example, the full data set is likely useful for interactive exploration, but would make for a messy map if we were trying to convey counts in an easy to understand format. A choropleth makes the data easy to interpret by obscures the exact location a spill occurred. 
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -24,17 +25,21 @@ library(here)
 
 ## Read in the data
 ```{r}
+# spill data
 spills <- read_sf(here('data', 'Oil_Spill_Incident_Tracking_[ds394]', "Oil_Spill_Incident_Tracking_[ds394].shp")) %>% 
   janitor::clean_names()
 
+# county shapefile
 ca_counties <- read_sf(here('data', 'ca_counties', 'CA_Counties_TIGER2016.shp')) %>% 
   janitor::clean_names()
 ```
 
 ## Create interactive exploratory map
-```{r}
+```{r, fig.align='center'}
+# interactive mode
 tmap_mode('view')
 
+# creation of exploratory map with both layers
 tm_shape(ca_counties)+
   tm_fill(col = 'black', alpha = 0.3)+
   tm_borders(col = 'black', lwd = 0.5)+
@@ -46,17 +51,19 @@ tm_shape(ca_counties)+
 
 ## Subset and join data
 ```{r}
+# subset of data
 spills_inland <- spills %>% 
   filter(inlandmari == "Inland") %>% 
   mutate(dateofinci = lubridate::ymd(dateofinci),
          year = lubridate::year(dateofinci)) %>% 
   filter(year == 2008)
 
+# spatial joining
 ca_spills <- ca_counties %>% 
   st_join(spills_inland)
 ```
 
-## Obtain the number of 
+## Obtain the number of 2008 spills by county
 ```{r}
 ca_spill_count <- ca_spills %>% 
   group_by(name) %>% 
@@ -64,8 +71,26 @@ ca_spill_count <- ca_spills %>%
 ```
 
 ## Create ggplot for visualization
-```{r}
-ggplot()+
-  geom_sf(data = ca_spill_count, aes(fill = n_records))
+```{r, fig.align='center', fig.cap= "**Fig. 1** Map of California Counties colored according to the number of oil spills that occured in 2008. Lighter colors indicate fewer icidents than darker colors."}
+ggplot(ca_spill_count, aes(fill = n_records))+
+  geom_sf() +
+  scale_fill_viridis_c(option = "A",direction = -1)+
+  theme(plot.title = element_text(color = "#5b4f41", size = 16),
+            plot.background = element_rect("white"),
+            panel.background = element_rect("#faf7f2"),
+            panel.grid = element_line(linetype= "longdash", color = "#f0ece1"),
+            axis.text = element_text(color = "#5b4f41"),
+            axis.title = element_text(color = "#5b4f41"),
+            strip.background = element_rect("white"),
+            axis.line = element_line(color = "#5b4f41"))+
+  labs(x = "Latitude",
+       y = "Longitude",
+       fill = "# of Spills")+
+  ggtitle("2008 California Oil Spills by County")
 ```
 
+
+
+
+# Data Citation:
+CA Department of Fish and Wildlife, Office of Spill Prevention and Response, "Oil spill Incident Tracking [ds394]," https://gis.data.ca.gov/datasets/7464e3d6f4924b50ad06e5a553d71086_0/explore?showTable=true
