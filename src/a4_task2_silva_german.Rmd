@@ -47,6 +47,9 @@ adult_pass <- read_csv(here('data', 'willamette_fish_passage.csv')) %>%
 # changing NA values to 0
 adult_pass[is.na(adult_pass)] = 0
 
+adult_pass_long <- adult_pass %>% 
+  pivot_longer(!date, names_to = "species", values_to = "count")
+
 # create the three ggplots visualizing the three time series
 
 ggplot(adult_pass, aes(x = date))+
@@ -138,4 +141,35 @@ patchwork
 
 ## Annual counts by species
 
+```{r, fig.align='center', fig.cap="**Fig. 3** Bar plots showing total annual counts of adult fish by sepcies from 2000 to 2010. Steelhead have the largest number of individuals, which could be due to having a longer season than the other two species."}
+adult_annual <- adult_pass_long %>% 
+  index_by(year = ~year(.)) %>% 
+  group_by(species, year) %>% 
+  summarize(annual_sum = sum(count))
 
+species.labs <- c("coho" = "Coho", "jack_coho" = "Jack Coho", "steelhead" = "Steelhead")
+
+ggplot(adult_annual, aes(x = year, y = annual_sum, fill = species))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~species, labeller = labeller(species = species.labs))+
+  scale_fill_manual(values = c("coho" = "#ff8362", "steelhead" = "#DEADA1", "jack_coho" = "#6d748c"))+
+  ggtitle("Annual Adult Fish Counts by Species")+
+  labs(x = "Year",
+       y = "Annual Counts",
+       fill = "Species")+
+  theme(plot.title = element_text(color = "#5b4f41", hjust = 0.5),
+            plot.background = element_rect("white"),
+            panel.background = element_rect("#faf7f2"),
+            panel.grid = element_line(linetype= "longdash", color = "#f0ece1"),
+            axis.text = element_text(color = "#5b4f41"),
+            axis.title = element_text(color = "#5b4f41"),
+            strip.background = element_rect("white"),
+        strip.text = element_text(color = "#5b4f41"),
+            axis.line = element_line(color = "#5b4f41"),
+        legend.position = "none")
+```
+**Takeaway Points**:
+
+- Jack Coho have the lowest annual counts out of the three species assessed
+- Annual Coho numbers seem to be on the rise between 2000 and 2010.
+- Despite Coho having the largest peak on daily passages, as seen in Fig. 1, steelhead have the largest number of annual passings.
