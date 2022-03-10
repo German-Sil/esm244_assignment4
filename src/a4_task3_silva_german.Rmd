@@ -2,29 +2,36 @@
 title: 'Task 3: Text Wrangling and Analysis'
 author: "Germán Silva"
 date: "3/8/2022"
-output: html_document
+output: 
+  html_document:
+    theme: flatly
+    code_folding: hide
+    
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Overview:
+
+This report looks at text from the first chapter of the _Wetlands_ textbook by . The text is analyzed to visualize the most common words used throughout the text and text sentiment analysis (is wetland science a positive or negative topic?). 
+
+```{r setup, include=TRUE, message = FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# attach libraries
+library(tidyverse)
+library(tidytext)
+library(textdata)
+library(pdftools)
+library(ggwordcloud)
 ```
 
-## R Markdown
+# Most Common Words
+```{r}
+# read in the data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+wetlands <- pdf_text(here::here("data", "wetlands_chapter_1.pdf"))
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+wetlands_lines <- data.frame(wetlands) %>% 
+  mutate(page = 1:n()) %>% 
+  mutate(text_full = str_split(wetlands, pattern = "\\n"))
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
