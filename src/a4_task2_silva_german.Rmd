@@ -133,6 +133,7 @@ patchwork <- coho_seaon /jack_season / steelhead_season
 
 patchwork
 ```
+
 **Takeaway Points**:
 
 - Coho and Jack Coho salmon have similar seasonality
@@ -168,6 +169,7 @@ ggplot(adult_annual, aes(x = year, y = annual_sum, fill = species))+
             axis.line = element_line(color = "#5b4f41"),
         legend.position = "none")
 ```
+
 **Takeaway Points**:
 
 - Jack Coho have the lowest annual counts out of the three species assessed
