@@ -24,11 +24,14 @@ library(pdftools)
 library(ggwordcloud)
 ```
 
-# Most Common Words
+# Most Common Words {.tabset .tabset-fade .tabset-pills}
+
 ```{r}
 # read in the data
 
 wetlands <- pdf_text(here::here("data", "wetlands_chapter_1.pdf"))
+
+# make it a data frame
 
 wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
   mutate(page = 1:n()) %>% # added page of occurence
@@ -36,12 +39,71 @@ wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
   unnest(text_full) %>% # unnest lines
   mutate(text_full = str_trim(text_full)) # trim the edges
 
+# get words from lines
+
 wetlands_words <- wetlands_lines %>% # call in the line data
   unnest_tokens(word, text_full) %>% # unnest the text into individual words
   select(-wetlands) 
 
+# clean the word data frame
+
+my_stop <- c("de", "al")
+
 wetlands_words_clean <- wetlands_words %>% # call words
   anti_join(stop_words, by = "word") %>%  # remove stop words (e.g. and, the, a, etc.)
-  filter(!str_detect(word, "[0-9]")) # get rid of numbers 
+  filter(!str_detect(word, "[0-9]"),
+         !str_detect(word, my_stop)) # get rid of numbers 
+
+# get word counts
+
+wetland_clean_counts <- wetlands_words_clean %>% 
+  count(word)
+
+# Top 10 words
+
+top_10_words <- wetland_clean_counts %>% 
+  arrange(-n) %>% 
+  slice(1:10)
+  
+
+# Top 100 words
+
+top_100_words <- wetland_clean_counts %>% 
+  arrange(-n) %>% 
+  slice(1:100)
+```
+
+## Top 10 Words Visualization
+
+```{r, fig.align='center', fig.cap= "**Fig. 1** Bar graph showing the top ten words from the text. This is just one way to visualize the such data."}
+ggplot(top_10_words, aes(x= reorder(word, -n), y= n))+
+  geom_col(fill = "#6d748c")+
+  ggtitle("Top 10 Words in CH. 1 of Wetlands")+
+  labs(x = "Word",
+       y = "Occurence")+
+  theme(plot.title = element_text(color = "#5b4f41", hjust = 0.5),
+            plot.background = element_rect("white"),
+            panel.background = element_rect("#faf7f2"),
+            panel.grid = element_line(linetype= "longdash", color = "#f0ece1"),
+            axis.text = element_text(color = "#5b4f41"),
+            axis.title = element_text(color = "#5b4f41"),
+            strip.background = element_rect("white"),
+            axis.line = element_line(color = "#5b4f41"),
+            legend.position = "none")
+```
+
+To no surprise, wetlands is the most common word used throughout the text and some other expected high frequency words are in the list such as science, ecology, and science.
+
+**Note**: The way that this analysis is done did not take into account plural words, so wetlands and wetland are counted as two words in the top 10 words.
+
+## Wordcloud
+
+```{r, fig.align='center', fig.cap="**Fig. 2** Another way to visualize text daya is a wordcloud. The above wordcloud shows the top 100 words from the text. Larger words indicate more occurences vs lighter smaller words. "}
+ggplot(top_100_words, aes(label = word))+
+  geom_text_wordcloud(aes(color = n, size = n), shape = "circle")+
+  scale_size_area(max_size = 20)+
+  scale_color_gradientn(colors = calecopal::cal_palette(name = "wetland", n= 5, type = "discrete"))+
+  theme_minimal()
+
 ```
 
