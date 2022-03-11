@@ -30,8 +30,18 @@ library(ggwordcloud)
 
 wetlands <- pdf_text(here::here("data", "wetlands_chapter_1.pdf"))
 
-wetlands_lines <- data.frame(wetlands) %>% 
-  mutate(page = 1:n()) %>% 
-  mutate(text_full = str_split(wetlands, pattern = "\\n"))
+wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
+  mutate(page = 1:n()) %>% # added page of occurence
+  mutate(text_full = str_split(wetlands, pattern = "\\n")) %>% # split lines by line breaks
+  unnest(text_full) %>% # unnest lines
+  mutate(text_full = str_trim(text_full)) # trim the edges
+
+wetlands_words <- wetlands_lines %>% # call in the line data
+  unnest_tokens(word, text_full) %>% # unnest the text into individual words
+  select(-wetlands) 
+
+wetlands_words_clean <- wetlands_words %>% # call words
+  anti_join(stop_words, by = "word") %>%  # remove stop words (e.g. and, the, a, etc.)
+  filter(!str_detect(word, "[0-9]")) # get rid of numbers 
 ```
 
