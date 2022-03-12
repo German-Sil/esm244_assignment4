@@ -9,9 +9,15 @@ output:
     
 ---
 
-# Overview:
+# Overview
 
-This report looks at text from the first chapter of the _Wetlands_ textbook by . The text is analyzed to visualize the most common words used throughout the text and text sentiment analysis (is wetland science a positive or negative topic?). 
+**Summary**:
+
+This report looks at text from the first chapter of the _Wetlands_ textbook by Mitsch and Gosselink (2015). The text covers an introduction to wetland science as a concept. Text is wrangled and subset to allow for two visualizations of the most common words used throughout the text and text sentiment analysis. These two analyses allow us to understand what are the most common words and get a sense of whether the discussion of wetland science is a positive or negative topic. 
+
+**Data Citation**:
+
+Mitsch, William and Gosselink, James. "Wetlands: Human Use and Science." *Wetlands*, John Wiley & Sons, Inc., 2015, pp. 3 - 26. 
 
 ```{r setup, include=TRUE, message = FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
@@ -42,17 +48,18 @@ wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
 # get words from lines
 
 wetlands_words <- wetlands_lines %>% # call in the line data
+  slice(1:733) %>% # remove the reference pages from the analysis
   unnest_tokens(word, text_full) %>% # unnest the text into individual words
   select(-wetlands) 
 
 # clean the word data frame
 
-my_stop <- c("de", "al")
+my_stop <- data.frame(word = c("de", "al", "mitsch", "gosselink", "john", "fig", "eds", "ed", "pp", "figure")) # list of words with no meaning in text such as author names, figure captions, and other similar abbreviations 
 
 wetlands_words_clean <- wetlands_words %>% # call words
   anti_join(stop_words, by = "word") %>%  # remove stop words (e.g. and, the, a, etc.)
-  filter(!str_detect(word, "[0-9]"),
-         !str_detect(word, my_stop)) # get rid of numbers 
+  anti_join(my_stop, by = "word") %>% 
+  filter(!str_detect(word, "[0-9]")) # get rid of numbers 
 
 # get word counts
 
@@ -77,7 +84,7 @@ top_100_words <- wetland_clean_counts %>%
 
 ```{r, fig.align='center', fig.cap= "**Fig. 1** Bar graph showing the top ten words from the text. This is just one way to visualize the such data."}
 ggplot(top_10_words, aes(x= reorder(word, -n), y= n))+
-  geom_col(fill = "#6d748c")+
+  geom_col(fill = "#3F320D")+
   ggtitle("Top 10 Words in CH. 1 of Wetlands")+
   labs(x = "Word",
        y = "Occurence")+
@@ -89,21 +96,33 @@ ggplot(top_10_words, aes(x= reorder(word, -n), y= n))+
             axis.title = element_text(color = "#5b4f41"),
             strip.background = element_rect("white"),
             axis.line = element_line(color = "#5b4f41"),
-            legend.position = "none")
+            legend.position = "none")+
+  coord_flip()
 ```
 
-To no surprise, wetlands is the most common word used throughout the text and some other expected high frequency words are in the list such as science, ecology, and science.
+To no surprise, "wetlands" is the most common word used throughout the text and other high frequency words would be somewhat expected such as "science", "ecology", and "water".
 
 **Note**: The way that this analysis is done did not take into account plural words, so wetlands and wetland are counted as two words in the top 10 words.
 
 ## Wordcloud
 
-```{r, fig.align='center', fig.cap="**Fig. 2** Another way to visualize text daya is a wordcloud. The above wordcloud shows the top 100 words from the text. Larger words indicate more occurences vs lighter smaller words. "}
+```{r, fig.align='center', fig.cap="**Fig. 2** Another way to visualize text daya is a wordcloud. The above wordcloud shows the top 100 words from the text. Larger words indicate more occurences vs lighter smaller words."}
 ggplot(top_100_words, aes(label = word))+
   geom_text_wordcloud(aes(color = n, size = n), shape = "circle")+
   scale_size_area(max_size = 20)+
   scale_color_gradientn(colors = calecopal::cal_palette(name = "wetland", n= 5, type = "discrete"))+
   theme_minimal()
 
+```
+
+# Sentiment Analysis
+
+```{r}
+# join sentiments from a sentiment library
+
+wetland_afinn <- wetlands_words_clean %>% 
+  inner_join(get_sentiments("afinn"), by = "word")
+
+# make a plot of sentiment affinity 
 ```
 
