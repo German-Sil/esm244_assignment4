@@ -17,7 +17,7 @@ This code provides two examples of spatial data visualization for oil spill data
 CA Department of Fish and Wildlife, Office of Spill Prevention and Response, "Oil spill Incident Tracking [ds394]," https://gis.data.ca.gov/datasets/7464e3d6f4924b50ad06e5a553d71086_0/explore?showTable=true
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, results = FALSE)
 
 # attach libraries
 library(spatstat)
