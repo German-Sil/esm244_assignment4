@@ -2,12 +2,19 @@
 title: 'Task 1: Spatial Data Viz (SILVA)'
 author: "German Silva"
 date: "3/1/2022"
-output: html_document
+output: 
+  html_document:
+    theme: flatly
 ---
 
 # Overview
 
+**Summary**:
+
 This code provides two examples of spatial data visualization for oil spill data in California. The exploratory data visualization is in an interactive format, while the choropleth map is a static map in a finalized format. Both highlight how the same data can be shown in different ways to visualize different aspects of the spatial data. For example, the full data set is likely useful for interactive exploration, but would make for a messy map if we were trying to convey counts in an easy to understand format. A choropleth makes the data easy to interpret by obscures the exact location a spill occurred. 
+
+**Data Citation**:
+CA Department of Fish and Wildlife, Office of Spill Prevention and Response, "Oil spill Incident Tracking [ds394]," https://gis.data.ca.gov/datasets/7464e3d6f4924b50ad06e5a553d71086_0/explore?showTable=true
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -91,6 +98,3 @@ ggplot(ca_spill_count, aes(fill = n_records))+
 
 
 
-
-# Data Citation:
-CA Department of Fish and Wildlife, Office of Spill Prevention and Response, "Oil spill Incident Tracking [ds394]," https://gis.data.ca.gov/datasets/7464e3d6f4924b50ad06e5a553d71086_0/explore?showTable=true

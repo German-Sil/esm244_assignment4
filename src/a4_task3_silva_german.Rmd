@@ -33,11 +33,13 @@ library(ggwordcloud)
 # Most Common Words {.tabset .tabset-fade .tabset-pills}
 
 ```{r}
-# read in the data
+# Wrangle the data
+
+## read in the data
 
 wetlands <- pdf_text(here::here("data", "wetlands_chapter_1.pdf"))
 
-# make it a data frame
+## make it a data frame
 
 wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
   mutate(page = 1:n()) %>% # added page of occurence
@@ -45,35 +47,35 @@ wetlands_lines <- data.frame(wetlands) %>% # pdf as data frame
   unnest(text_full) %>% # unnest lines
   mutate(text_full = str_trim(text_full)) # trim the edges
 
-# get words from lines
+## get words from lines
 
 wetlands_words <- wetlands_lines %>% # call in the line data
   slice(1:733) %>% # remove the reference pages from the analysis
   unnest_tokens(word, text_full) %>% # unnest the text into individual words
   select(-wetlands) 
 
-# clean the word data frame
+## clean the word data frame
 
-my_stop <- data.frame(word = c("de", "al", "mitsch", "gosselink", "john", "fig", "eds", "ed", "pp", "figure")) # list of words with no meaning in text such as author names, figure captions, and other similar abbreviations 
+my_stop <- data.frame(word = c("de", "al", "mitsch", "gosselink", "john", "fig", "eds", "ed", "pp", "figure", "references")) # list of words with no meaning in text such as author names, figure captions, and other similar abbreviations 
 
 wetlands_words_clean <- wetlands_words %>% # call words
   anti_join(stop_words, by = "word") %>%  # remove stop words (e.g. and, the, a, etc.)
   anti_join(my_stop, by = "word") %>% 
   filter(!str_detect(word, "[0-9]")) # get rid of numbers 
 
-# get word counts
+## get word counts
 
 wetland_clean_counts <- wetlands_words_clean %>% 
   count(word)
 
-# Top 10 words
+## Top 10 words
 
 top_10_words <- wetland_clean_counts %>% 
   arrange(-n) %>% 
   slice(1:10)
   
 
-# Top 100 words
+## Top 100 words
 
 top_100_words <- wetland_clean_counts %>% 
   arrange(-n) %>% 
@@ -84,7 +86,7 @@ top_100_words <- wetland_clean_counts %>%
 
 ```{r, fig.align='center', fig.cap= "**Fig. 1** Bar graph showing the top ten words from the text. This is just one way to visualize the such data."}
 ggplot(top_10_words, aes(x= reorder(word, -n), y= n))+
-  geom_col(fill = "#3F320D")+
+  geom_col(fill = "#2B3851")+
   ggtitle("Top 10 Words in CH. 1 of Wetlands")+
   labs(x = "Word",
        y = "Occurence")+
@@ -108,21 +110,45 @@ To no surprise, "wetlands" is the most common word used throughout the text and 
 
 ```{r, fig.align='center', fig.cap="**Fig. 2** Another way to visualize text daya is a wordcloud. The above wordcloud shows the top 100 words from the text. Larger words indicate more occurences vs lighter smaller words."}
 ggplot(top_100_words, aes(label = word))+
-  geom_text_wordcloud(aes(color = n, size = n), shape = "circle")+
-  scale_size_area(max_size = 20)+
-  scale_color_gradientn(colors = calecopal::cal_palette(name = "wetland", n= 5, type = "discrete"))+
+  geom_text_wordcloud(aes(color = n, size = n), shape = "square")+
+  scale_size_area(max_size = 24)+
+  scale_color_gradientn(colors = calecopal::cal_palette(name = "wetland", n= 50, type = "continuous"))+
   theme_minimal()
 
 ```
 
 # Sentiment Analysis
 
-```{r}
+```{r, fig.align='center', fig.cap="**Fig. 3** Text sentiment scores for words found throughout the chapter. A score from 1 to 5 indicates a positive sentiment, while scores from -1 to -5 indicate a negative sentiment. Overall there are more words with positive sentiments, but this does not take into account the strength of these sentiments (for example, a sentiment of +1 is not the same strength as a sentiment of -4). It seems that this introduction to wetland science is more positive than it is negative."}
 # join sentiments from a sentiment library
 
 wetland_afinn <- wetlands_words_clean %>% 
-  inner_join(get_sentiments("afinn"), by = "word")
+  inner_join(get_sentiments("afinn"), by = "word") %>% 
+  count(value) %>% 
+  mutate(n = ifelse(
+    value %in% c(-4, -3, -2, -1), n * -1, n),
+    affinity = ifelse(value %in% c(-4, -3, -2, -1), "Negative", "Positive"))
 
 # make a plot of sentiment affinity 
+
+ggplot(wetland_afinn, aes(x = value, y = n, fill = affinity)) +
+  geom_bar(stat = "identity", position = "identity")+
+  geom_hline(yintercept = 0, color = "#5b4f41")+
+  ggtitle("Words Sentiment Scores for CH. 1")+
+  scale_y_continuous(breaks = pretty(wetland_afinn$n), labels = abs(pretty(wetland_afinn$n)))+
+  scale_fill_manual(values = c("Positive" = "#bd973d",
+                               "Negative" = "#4c5b75"))+
+  labs(x = "Sentiment Value",
+       y = "# of Words",
+       fill = "Sentiment Type")+
+   theme(plot.title = element_text(color = "#5b4f41", hjust = 0.5),
+            plot.background = element_rect("white"),
+            panel.background = element_rect("#faf7f2"),
+            panel.grid = element_line(linetype= "longdash", color = "#f0ece1"),
+            axis.text = element_text(color = "#5b4f41"),
+            axis.title = element_text(color = "#5b4f41"),
+            strip.background = element_rect("white"),
+            axis.line = element_line(color = "#5b4f41")) +
+  coord_flip()
 ```
 
