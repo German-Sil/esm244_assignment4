@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 # attach libraries
 library(spatstat)
 library(tmap)
-library(tmaptools)
+library(maptools)
 library(sf)
 library(tidyverse)
 library(here)
@@ -96,5 +96,41 @@ ggplot(ca_spill_count, aes(fill = n_records))+
   ggtitle("2008 California Oil Spills by County")
 ```
 
+# Point Pattern Analysis (G-function)
 
+```{r, fig.align='center', fig.cap="**Fig. 3** A G-function plot used assess whether events are spatially random or not. As the G(r) values (% of Points pairs with a neighbor within the distance) are higher for the observed values than the model, we can conclude that CA oil spills are a clustered phenomena."}
+spills_sp <- as(spills, "Spatial")
+spills_ppp <- as(spills_sp, "ppp")
+
+ca_sp <- as(ca_counties, "Spatial")
+ca_win <- as(ca_sp, "owin")
+
+spills_full <- ppp(spills_ppp$x, spills_ppp$y, window = ca_win)
+
+r_vec <- seq(0, 25000, by = 100) # make a sequence of distances over which we will calculate G(r)
+
+
+gfunction <- envelope(spills_full, fun = Gest, r = r_vec, nsim = 10, nrank = 2)
+
+gfunction_long <- gfunction %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = obs:hi, names_to = "model", values_to = "g_val")
+
+ggplot(gfunction_long, aes(x = r, y = g_val, group = model))+
+  geom_line(aes(color = model)) +
+  scale_color_manual(values = calecopal::cal_palette(name = "sierra1", n = 4, type = "discrete"))+
+  theme(plot.title = element_text(color = "#5b4f41", size = 16),
+            plot.background = element_rect("white"),
+            panel.background = element_rect("#faf7f2"),
+            panel.grid = element_line(linetype= "longdash", color = "#f0ece1"),
+            axis.text = element_text(color = "#5b4f41"),
+            axis.title = element_text(color = "#5b4f41"),
+            strip.background = element_rect("white"),
+            axis.line = element_line(color = "#5b4f41"))+
+  labs(x = "Distance",
+       y = "% of Point Pairs",
+       color = "Model")+
+  ggtitle("Nearest Neighbor Point Pattern Analysis by G-Function")
+
+```
 
