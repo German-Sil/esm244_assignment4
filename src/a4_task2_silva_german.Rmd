@@ -24,7 +24,7 @@ library(patchwork)
 
 # Overview {.tabset .tabset-fade .tabset-pills}
 
-![Salmon jumping up a fish ladder by John Pavlish. Copyright: © 2012 John Pavlish All Rights Reserved](https://upload.wikimedia.org/wikipedia/commons/8/85/Salmon_Fish_Ladder.jpg)
+![**Caption**: Salmon swimming up a fish ladder. Photo by John Trax/Alamy Stock Photo](https://hakaimagazine.com/wp-content/uploads/bonneville-fish-ladders-1200x798.jpg)
 
 **Summary**:
 
